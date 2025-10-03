@@ -1,32 +1,27 @@
-version: '3.8'
-
 services:
   dind:
     image: docker:24-dind
-    privileged: true  # Allows Docker commands inside the container
+    privileged: true
     container_name: dind_service
     environment:
-      - DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_TLS_CERTDIR=
     volumes:
-      - docker-certs:/certs/client
       - docker-data:/var/lib/docker
+      - jenkins_home:/var/jenkins_home
     networks:
       - jenkins_net
 
   jenkins:
-    image: jenkins/jenkins:lts-jdk11
+    build: ./jenkins
     container_name: jenkins_service
     user: root
     ports:
-      - "8080:8080"  # Jenkins Web UI
-      - "50000:50000"  # Jenkins agent communication
+      - "8080:8080"
+      - "50000:50000"
     environment:
-      - DOCKER_HOST=tcp://dind:2376
-      - DOCKER_CERT_PATH=/certs/client
-      - DOCKER_TLS_VERIFY=1
+      - DOCKER_HOST=tcp://dind:2375
     volumes:
       - jenkins_home:/var/jenkins_home
-      - docker-certs:/certs/client:ro
     networks:
       - jenkins_net
 
@@ -36,4 +31,3 @@ networks:
 volumes:
   jenkins_home:
   docker-data:
-  docker-certs:
